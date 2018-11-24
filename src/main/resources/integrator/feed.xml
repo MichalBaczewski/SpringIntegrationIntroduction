@@ -1,0 +1,41 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:file="http://www.springframework.org/schema/integration/file"
+       xmlns:feed="http://www.springframework.org/schema/integration/feed"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <feed:inbound-channel-adapter
+            id="reader"
+            auto-startup="true"
+            url="http://spring.io/blog.atom">
+        <int:poller fixed-rate="5000"></int:poller>
+    </feed:inbound-channel-adapter>
+    <file:outbound-channel-adapter
+            id="writer_txt"
+            directory-expression="'${feed.file.dir:c:\temp\sda}'"
+            filename-generator-expression="'${feed.file.txt.name:SpringBlog.txt}'"
+            mode="APPEND"
+            charset="UTF-8">
+    </file:outbound-channel-adapter>
+    <file:outbound-channel-adapter
+            id="writer_csv"
+            directory-expression="'${feed.file.dir:c:\temp\sda}'"
+            filename-generator-expression="'${feed.file.csv.name:SpringBlog.csv}'"
+            mode="APPEND"
+            charset="UTF-8">
+    </file:outbound-channel-adapter>
+    <int:transformer
+        input-channel="reader"
+        output-channel="writer_txt"
+        expression="payload.title + ' @ ' + payload.link + '#{systemProperties['line.separator']}'">
+    </int:transformer>
+    <int:transformer
+            input-channel="reader"
+            output-channel="writer_csv"
+            expression="payload.title + ' @ ' + payload.link + '#{systemProperties['line.separator']}'">
+    </int:transformer>
+</beans>
